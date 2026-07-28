@@ -391,16 +391,17 @@ html, body {
 .word-card.card-known { border-color: #22c55e; }
 .word-card.card-unknown { border-color: #ef4444; }
 
-/* 单词（大号加粗） */
+/* 单词（大号加粗，在音标下方） */
 .card-word {
   font-size: 28px; font-weight: 700; color: var(--text);
-  margin-bottom: 6px; letter-spacing: 1px;
+  margin-bottom: 16px; letter-spacing: 1px;
 }
 
-/* 音标 */
+/* 音标（放卡片顶部） */
 .card-phonetic {
   font-size: 15px; color: var(--text-secondary);
-  margin-bottom: 16px; font-family: 'Segoe UI', sans-serif;
+  margin-bottom: 20px; font-family: 'Segoe UI', sans-serif;
+  letter-spacing: 0.5px;
 }
 
 /* 分割线 */
@@ -416,11 +417,11 @@ html, body {
   line-height: 1.5;
 }
 
-/* 例句区域 */
+/* 例句区域（居中） */
 .card-example-box {
   background: #f5f5f4; border-radius: 10px;
   padding: 14px 16px; margin-top: 4px;
-  width: 100%; max-width: 320px; text-align: left;
+  width: 100%; max-width: 320px; text-align: center;
 }
 .example-en {
   font-size: 14px; color: var(--text);
