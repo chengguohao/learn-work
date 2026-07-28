@@ -1,0 +1,22 @@
+{
+  "name": "成国浩的工作台",
+  "short_name": "工作台",
+  "description": "英语三级学习 + 抖音热点 + 小红书复盘",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#fef7ee",
+  "theme_color": "#f97316",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

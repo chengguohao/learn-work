@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>成国浩的工作台</title>
+  <!-- PWA 支持 -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="工作台">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="theme-color" content="#f97316">
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+  <!-- 样式 -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ========== 顶部导航 ========== -->
+  <header class="app-header">
+    <div class="header-left">
+      <span class="logo">⚡</span>
+      <h1 class="app-title">成国浩的工作台</h1>
+    </div>
+    <div class="header-right">
+      <span id="todayDate" class="today-date"></span>
+    </div>
+  </header>
+
+  <!-- ========== 主内容区域 ========== -->
+  <main class="app-main">
+
+    <!-- ===== 页面1：英语三级学习 ===== -->
+    <section id="page-english" class="page active">
+      <!-- 顶部进度条 -->
+      <div class="section-header">
+        <h2>📚 公共英语三级</h2>
+        <div class="progress-ring">
+          <svg width="44" height="44" viewBox="0 0 44 44">
+            <circle cx="22" cy="22" r="18" fill="none" stroke="#f0f0f0" stroke-width="4"/>
+            <circle id="progressCircle" cx="22" cy="22" r="18" fill="none" stroke="#f97316" stroke-width="4"
+              stroke-dasharray="113" stroke-dashoffset="113" stroke-linecap="round"
+              transform="rotate(-90 22 22)"/>
+          </svg>
+          <span id="progressPercent" class="progress-text">0%</span>
+        </div>
+      </div>
+
+      <!-- 每日任务卡片 -->
+      <div class="card daily-tasks">
+        <div class="card-title">
+          <span>📋 今日任务</span>
+          <span id="taskDate" class="task-date"></span>
+        </div>
+        <div class="task-list" id="taskList">
+          <!-- 由 JS 动态渲染 -->
+        </div>
+      </div>
+
+      <!-- 功能标签切换 -->
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="words">📖 单词</button>
+        <button class="tab-btn" data-tab="phrases">📝 短语</button>
+        <button class="tab-btn" data-tab="writing">✍️ 作文</button>
+      </div>
+
+      <!-- 单词 tab -->
+      <div id="tab-words" class="tab-content active">
+        <div class="search-box">
+          <input type="text" id="wordSearch" placeholder="搜索单词..." class="search-input">
+        </div>
+        <div class="word-list" id="wordList"></div>
+      </div>
+
+      <!-- 短语 tab -->
+      <div id="tab-phrases" class="tab-content">
+        <div class="phrase-list" id="phraseList"></div>
+      </div>
+
+      <!-- 作文 tab -->
+      <div id="tab-writing" class="tab-content">
+        <div class="writing-list" id="writingList"></div>
+      </div>
+    </section>
+
+    <!-- ===== 页面2：抖音热点 ===== -->
+    <section id="page-douyin" class="page">
+      <div class="section-header">
+        <h2>🔥 抖音爆款热点</h2>
+        <span class="badge">今日更新</span>
+      </div>
+
+      <!-- 风格标签筛选 -->
+      <div class="style-tags" id="dyStyleTags">
+        <button class="tag-btn active" data-style="all">全部</button>
+        <button class="tag-btn" data-style="搞笑">😂 搞笑</button>
+        <button class="tag-btn" data-style="知识">📖 知识</button>
+        <button class="tag-btn" data-style="生活">🏠 生活</button>
+        <button class="tag-btn" data-style="美食">🍜 美食</button>
+        <button class="tag-btn" data-style="旅行">✈️ 旅行</button>
+      </div>
+
+      <div class="hot-list" id="dyHotList">
+        <!-- 由 JS 动态渲染 -->
+      </div>
+    </section>
+
+    <!-- ===== 页面3：小红书复盘 ===== -->
+    <section id="page-xiaohongshu" class="page">
+      <div class="section-header">
+        <h2>💡 小红书 · 复盘与灵感</h2>
+      </div>
+
+      <!-- 子 tab：热点 / 复盘 / 灵感 -->
+      <div class="tab-bar">
+        <button class="tab-btn active" data-subtab="hot">🔥 热点</button>
+        <button class="tab-btn" data-subtab="review">📊 复盘</button>
+        <button class="tab-btn" data-subtab="inspire">💡 灵感</button>
+      </div>
+
+      <!-- 热点 -->
+      <div id="subtab-xhs-hot" class="tab-content active">
+        <div class="style-tags" id="xhsStyleTags">
+          <button class="tag-btn active" data-style="all">全部</button>
+          <button class="tag-btn" data-style="穿搭">👗 穿搭</button>
+          <button class="tag-btn" data-style="美妆">💄 美妆</button>
+          <button class="tag-btn" data-style="生活">🏠 生活</button>
+          <button class="tag-btn" data-style="美食">🍜 美食</button>
+          <button class="tag-btn" data-style="旅行">✈️ 旅行</button>
+        </div>
+        <div class="hot-list" id="xhsHotList"></div>
+      </div>
+
+      <!-- 复盘 -->
+      <div id="subtab-xhs-review" class="tab-content">
+        <div class="review-form card">
+          <div class="card-title">📝 记录发布内容</div>
+          <textarea id="reviewContent" class="review-input" placeholder="粘贴你的文案/标题/描述..." rows="3"></textarea>
+          <div class="review-meta">
+            <input type="text" id="reviewTitle" class="meta-input" placeholder="标题">
+            <select id="reviewType" class="meta-select">
+              <option value="图文">图文</option>
+              <option value="视频">视频</option>
+            </select>
+          </div>
+          <button id="submitReview" class="btn-primary">提交复盘</button>
+        </div>
+        <div class="review-list" id="reviewList"></div>
+      </div>
+
+      <!-- 灵感 -->
+      <div id="subtab-xhs-inspire" class="tab-content">
+        <div class="inspire-card card">
+          <div class="card-title">💡 今日灵感</div>
+          <div id="inspireContent" class="inspire-content">
+            <p class="inspire-text">加载中...</p>
+          </div>
+          <button id="refreshInspire" class="btn-secondary">换一个灵感</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========== 底部导航 ========== -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-page="english">
+      <span class="nav-icon">📚</span>
+      <span class="nav-label">英语学习</span>
+    </button>
+    <button class="nav-btn" data-page="douyin">
+      <span class="nav-icon">🔥</span>
+      <span class="nav-label">抖音热点</span>
+    </button>
+    <button class="nav-btn" data-page="xiaohongshu">
+      <span class="nav-icon">💡</span>
+      <span class="nav-label">小红书</span>
+    </button>
+  </nav>
+
+  <!-- ========== 配置弹窗 ========== -->
+  <div id="configModal" class="modal">
+    <div class="modal-content">
+      <h3>⚙️ 配置 Supabase 同步</h3>
+      <p class="config-desc">填好之后，手机和电脑数据自动同步 👇</p>
+
+      <div class="config-steps">
+        <div class="config-step">
+          <span class="step-num">1</span>
+          <span>登录 supabase.com → 进入你的项目 → 左侧 <strong>Project Settings → API</strong></span>
+        </div>
+        <div class="config-step">
+          <span class="step-num">2</span>
+          <span>复制页面中的 <strong>Project URL</strong> 和 <strong>anon public key</strong></span>
+        </div>
+      </div>
+
+      <div class="config-field">
+        <label>🔗 Project URL</label>
+        <input type="url" id="inputUrl" placeholder="https://xxxxx.supabase.co">
+      </div>
+      <div class="config-field">
+        <label>🔑 anon public key</label>
+        <input type="text" id="inputKey" placeholder="eyJhbGciOiJIUzI1NiIs...">
+      </div>
+      <div class="config-hint">
+        <p>📌 还需要先建 3 张表：<code>douyin_hot</code>、<code>xhs_hot</code>、<code>xhs_reviews</code></p>
+        <p>📖 详见 README.md 中的建表 SQL</p>
+      </div>
+      <button id="saveConfig" class="btn-primary">保存并启动</button>
+      <button id="skipConfig" class="btn-link">先跳过，用本地数据</button>
+    </div>
+  </div>
+
+  <!-- ========== Scripts ========== -->
+  <script>
+    // 注册 Service Worker（PWA 离线支持）
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
+  <script src="js/supabase.js"></script>
+  <script src="data/english-3.js"></script>
+  <script src="js/english.js"></script>
+  <script src="js/douyin.js"></script>
+  <script src="js/xiaohongshu.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
