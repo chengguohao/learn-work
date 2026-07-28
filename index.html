@@ -66,12 +66,56 @@
         <button class="tab-btn" data-tab="writing">✍️ 作文</button>
       </div>
 
-      <!-- 单词 tab -->
+      <!-- 单词 tab（卡片模式） -->
       <div id="tab-words" class="tab-content active">
-        <div class="search-box">
-          <input type="text" id="wordSearch" placeholder="搜索单词..." class="search-input">
+        <!-- 加载状态 -->
+        <div class="card-loading" id="cardLoading">加载单词库...</div>
+
+        <!-- 卡片 -->
+        <div class="word-card" id="wordCard" style="display:none">
+          <div class="card-word" id="cardWord"></div>
+          <div class="card-phonetic" id="cardPhonetic"></div>
+          <div class="card-divider"></div>
+          <div class="card-meaning" id="cardMeaning"></div>
+          <div class="card-example-box" id="cardExampleBox" style="display:none">
+            <div class="example-en" id="cardExampleEn"></div>
+            <div class="example-cn" id="cardExampleCn"></div>
+          </div>
         </div>
-        <div class="word-list" id="wordList"></div>
+
+        <!-- 进度 -->
+        <div class="card-progress" id="cardProgress" style="display:none">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progressFill"></div>
+          </div>
+          <span class="progress-text" id="progressText">0 / 0</span>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="card-actions" id="cardActions" style="display:none">
+          <button class="btn-unknown" id="btnUnknown">😵 不认识</button>
+          <button class="btn-known" id="btnKnown">✅ 认识</button>
+        </div>
+
+        <!-- 学习统计 + 模式切换 -->
+        <div class="card-footer" id="cardFooter" style="display:none">
+          <div class="card-stats">
+            <span>今日学习: <strong id="todayCount">0</strong></span>
+            <span>· 掌握: <strong id="masterRate">0%</strong></span>
+            <span>· 待复习: <strong id="reviewCount">0</strong></span>
+          </div>
+          <div class="card-footer-btns">
+            <button class="btn-sm" id="btnReviewMode">🔁 复习模式</button>
+            <button class="btn-sm" id="btnResetProgress">🔄 重置</button>
+          </div>
+        </div>
+
+        <!-- 完成状态 -->
+        <div class="card-done" id="cardDone" style="display:none">
+          <div class="done-icon">🎉</div>
+          <div class="done-text">全部学完！</div>
+          <button class="btn-sm" id="btnRestart">🔄 重新开始</button>
+        </div>
       </div>
 
       <!-- 短语 tab -->

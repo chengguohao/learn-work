@@ -10,6 +10,7 @@ const ASSETS = [
   'js/douyin.js',
   'js/xiaohongshu.js',
   'data/english-3.js',
+  'data/english_words.json',
   'manifest.json',
   'icons/icon-192.png',
   'icons/512.png',

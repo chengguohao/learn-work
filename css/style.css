@@ -366,3 +366,139 @@ html, body {
   .app-main { padding-top: calc(var(--header-height) + 20px); }
   .section-header h2 { font-size: 20px; }
 }
+
+/* ============================================
+   单词卡片模式
+   ============================================ */
+
+/* 加载状态 */
+.card-loading {
+  text-align: center; padding: 60px 20px;
+  color: var(--text-secondary); font-size: 15px;
+}
+
+/* 卡片主体 */
+.word-card {
+  background: var(--card-bg); border-radius: var(--radius);
+  padding: 32px 24px; margin: 16px 12px;
+  text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  min-height: 240px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  transition: border-color 0.3s;
+  border: 2px solid transparent;
+  user-select: none; touch-action: pan-y;
+}
+.word-card.card-known { border-color: #22c55e; }
+.word-card.card-unknown { border-color: #ef4444; }
+
+/* 单词（大号加粗） */
+.card-word {
+  font-size: 28px; font-weight: 700; color: var(--text);
+  margin-bottom: 6px; letter-spacing: 1px;
+}
+
+/* 音标 */
+.card-phonetic {
+  font-size: 15px; color: var(--text-secondary);
+  margin-bottom: 16px; font-family: 'Segoe UI', sans-serif;
+}
+
+/* 分割线 */
+.card-divider {
+  width: 40px; height: 3px; background: var(--orange-light);
+  border-radius: 2px; margin: 0 auto 16px;
+}
+
+/* 释义 */
+.card-meaning {
+  font-size: 18px; color: var(--orange-dark);
+  font-weight: 600; margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+/* 例句区域 */
+.card-example-box {
+  background: #f5f5f4; border-radius: 10px;
+  padding: 14px 16px; margin-top: 4px;
+  width: 100%; max-width: 320px; text-align: left;
+}
+.example-en {
+  font-size: 14px; color: var(--text);
+  line-height: 1.6; font-style: italic;
+  margin-bottom: 6px;
+}
+.example-cn {
+  font-size: 13px; color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* 进度条 */
+.card-progress {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 16px; margin-bottom: 12px;
+}
+.progress-bar-bg {
+  flex: 1; height: 6px; background: #e7e5e4;
+  border-radius: 3px; overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%; background: var(--orange);
+  border-radius: 3px; transition: width 0.3s ease;
+}
+.progress-text {
+  font-size: 13px; color: var(--text-secondary);
+  white-space: nowrap; font-weight: 500;
+}
+
+/* 操作按钮 */
+.card-actions {
+  display: flex; gap: 12px; padding: 0 16px;
+  justify-content: center; margin-bottom: 16px;
+}
+.btn-unknown, .btn-known {
+  flex: 1; max-width: 160px; padding: 14px 0;
+  border: none; border-radius: 12px;
+  font-size: 16px; font-weight: 600; cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.btn-unknown:active, .btn-known:active { transform: scale(0.95); }
+.btn-unknown {
+  background: #fef2f2; color: #dc2626;
+  border: 1.5px solid #fecaca;
+}
+.btn-known {
+  background: #f0fdf4; color: #16a34a;
+  border: 1.5px solid #bbf7d0;
+}
+
+/* 底部统计 + 模式切换 */
+.card-footer {
+  padding: 0 16px 20px;
+}
+.card-stats {
+  display: flex; justify-content: center; gap: 4px;
+  font-size: 13px; color: var(--text-secondary);
+  margin-bottom: 12px; flex-wrap: wrap;
+}
+.card-stats strong { color: var(--text); font-weight: 600; }
+
+.card-footer-btns {
+  display: flex; justify-content: center; gap: 8px;
+}
+
+/* 小按钮 */
+.btn-sm {
+  padding: 6px 14px; border: 1px solid var(--border);
+  border-radius: 8px; background: var(--card-bg);
+  color: var(--text-secondary); font-size: 13px;
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-sm:hover { border-color: var(--orange); color: var(--orange-dark); }
+.btn-sm.active { background: var(--orange-light); color: var(--orange-dark); border-color: var(--orange); }
+
+/* 完成状态 */
+.card-done {
+  text-align: center; padding: 60px 20px;
+}
+.done-icon { font-size: 48px; margin-bottom: 12px; }
+.done-text { font-size: 18px; color: var(--text); font-weight: 600; margin-bottom: 16px; }
