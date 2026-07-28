@@ -198,24 +198,23 @@ function renderCard() {
   if (!word) return;
 
   document.getElementById('cardWord').textContent = word.word;
+  document.getElementById('cardNumber').textContent = `${EnglishState.currentIndex + 1} / ${total}`;
   document.getElementById('cardPhonetic').textContent = word.phonetic;
   document.getElementById('cardMeaning').textContent = word.meaning;
 
   // 例句（如果有）
   const exampleBox = document.getElementById('cardExampleBox');
   if (word.example) {
-    exampleBox.style.display = 'block';
+    exampleBox.classList.remove('hidden');
     document.getElementById('cardExampleEn').textContent = word.example;
     document.getElementById('cardExampleCn').textContent = word.translation || '';
   } else {
-    exampleBox.style.display = 'none';
+    exampleBox.classList.add('hidden');
   }
 
   // 进度条
   const progress = ((EnglishState.currentIndex + 1) / total) * 100;
   document.getElementById('progressFill').style.width = progress + '%';
-  document.getElementById('progressText').textContent =
-    `${EnglishState.currentIndex + 1} / ${total}`;
 
   // 标记当前单词的学习状态样式
   const card = document.getElementById('wordCard');

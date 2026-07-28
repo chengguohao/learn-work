@@ -73,11 +73,12 @@
 
         <!-- 卡片 -->
         <div class="word-card" id="wordCard" style="display:none">
-          <div class="card-phonetic" id="cardPhonetic"></div>
           <div class="card-word" id="cardWord"></div>
+          <div class="card-number" id="cardNumber"></div>
+          <div class="card-phonetic" id="cardPhonetic"></div>
           <div class="card-divider"></div>
           <div class="card-meaning" id="cardMeaning"></div>
-          <div class="card-example-box" id="cardExampleBox" style="display:none">
+          <div class="card-example-box" id="cardExampleBox">
             <div class="example-en" id="cardExampleEn"></div>
             <div class="example-cn" id="cardExampleCn"></div>
           </div>
@@ -88,7 +89,7 @@
           <div class="progress-bar-bg">
             <div class="progress-bar-fill" id="progressFill"></div>
           </div>
-          <span class="progress-text" id="progressText">0 / 0</span>
+          <span class="progress-text" id="progressText"></span>
         </div>
 
         <!-- 操作按钮 -->
@@ -134,6 +135,7 @@
       <div class="section-header">
         <h2>🔥 抖音爆款热点</h2>
         <span class="badge">今日更新</span>
+        <button class="btn-refresh" id="btnRefreshHot" title="更新热点数据">🔄</button>
       </div>
 
       <!-- 风格标签筛选 -->

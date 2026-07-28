@@ -136,5 +136,10 @@ function bindDouyinEvents() {
       DouyinState.currentStyle = btn.dataset.style;
       renderDouyinList();
     });
+  });  // end tag-btn loop
+
+  // 刷新热点按钮
+  document.getElementById('btnRefreshHot')?.addEventListener('click', () => {
+    alert('需要我来更新热点数据。跟我说一声「更新热点」，我抓取最新数据写入数据库后，你刷新页面就能看到。');
   });
-}
+}  // end bindDouyinEvents
