@@ -282,10 +282,9 @@ function bindXHSEvents() {
     XHSState.reviews.unshift(review);
     localStorage.setItem('xhs_reviews', JSON.stringify(XHSState.reviews));
 
-    // 如果有 Supabase，同步（去掉 id，让数据库自动生成）
+    // 如果有 Supabase，同步
     if (isSupabaseReady()) {
-      const { id, ...dbReview } = review;
-      insertData('xhs_reviews', dbReview);
+      insertData('xhs_reviews', review);
     }
 
     // 清空表单

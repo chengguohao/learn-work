@@ -198,3 +198,49 @@ workbuddy/
 - 默认使用**本地 localStorage** 存储（打卡记录、复盘记录）
 - 配置 Supabase 后自动切换到**云端同步**，手机和电脑数据实时共享
 - 各模块数据加载策略：Supabase → 本地示例（fallback）
+
+---
+
+## 📱 一源两配：PWA + APK 双版本工作流程
+
+本项目的 PWA 版（浏览器）和 APK 版（HBuilder 打包）共享同一套源码，采用 **一源两配** 架构：
+
+```
+workbuddy/                  ← 🟢 一源：所有代码修改都在这里
+├── index.html
+├── js/                     ← 共享逻辑
+├── css/                    ← 共享样式
+├── data/                   ← 共享数据
+├── manifest.json           ← PWA 配置（浏览器用）
+├── sync-to-apk.bat         ← 同步脚本
+│
+└── workbuddy/              ← 🟡 两配：APK 项目专属
+    ├── (共享文件同上，从根目录同步过来)
+    ├── manifest.json       ← HBuilder 原生配置（格式完全不同）
+    ├── icons/              ← APK 图标集（更全）
+    ├── img/                ← APK 专属资源
+    └── unpackage/          ← 构建产物（已 gitignore）
+```
+
+### 日常开发流程
+
+```
+1. 修改源码 → 在 workbuddy/ 里改（改 JS/CSS/HTML）
+2. 打包 APK → 双击 sync-to-apk.bat → 打开 HBuilder 打包
+3. 不打包时 → 直接用浏览器打开 index.html 测试
+```
+
+### 规则
+
+| 规则 | 说明 |
+|------|------|
+| ✅ **永远在根目录改代码** | 所有 JS/CSS/HTML 修改都在 `workbuddy/` 里进行 |
+| ✅ **打包前先同步** | 双击 `sync-to-apk.bat`，把源码复制到 `workbuddy/workbuddy/` 后再打包 |
+| ✅ **manifest 各自维护** | PWA 和 APK 的 manifest.json 格式不同，各自独立修改 |
+| ❌ **不要直接改 APK 目录里的 JS/CSS/HTML** | 改了下次同步会被覆盖，白改 |
+
+### 两个 Git 仓库
+
+- `workbuddy/.git` → 跟踪 **PWA 源码版本**
+- `workbuddy/workbuddy/.git` → 跟踪 **APK 专属配置和版本**
+- 根目录的 `.gitignore` 已排除 `workbuddy/`（内层），两者互不干扰
