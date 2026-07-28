@@ -139,7 +139,34 @@ function bindDouyinEvents() {
   });  // end tag-btn loop
 
   // 刷新热点按钮
-  document.getElementById('btnRefreshHot')?.addEventListener('click', () => {
-    alert('需要我来更新热点数据。跟我说一声「更新热点」，我抓取最新数据写入数据库后，你刷新页面就能看到。');
+  document.getElementById('btnRefreshHot')?.addEventListener('click', async () => {
+    const btn = document.getElementById('btnRefreshHot');
+    btn.textContent = '⏳';
+    btn.disabled = true;
+
+    try {
+      const resp = await fetch('/.netlify/functions/refresh-hot');
+      const result = await resp.json();
+
+      if (result.success) {
+        alert('✅ 已更新 ' + result.count + ' 条热点数据！\n\n' +
+          result.data.map((d, i) => (i+1) + '. ' + d.title + ' (' + d.views + ')').join('\n') +
+          '\n\n刷新页面即可查看');
+        // 重新加载数据
+        loadDouyinData();
+      } else {
+        alert('❌ 更新失败：' + (result.error || '未知错误'));
+      }
+    } catch (e) {
+      // 本地开发环境没有 Netlify Function 时的 fallback
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        alert('本地环境不支持自动刷新。跟我说一声「更新热点」，我来帮你抓取。');
+      } else {
+        alert('❌ 请求失败，请稍后重试');
+      }
+    } finally {
+      btn.textContent = '🔄';
+      btn.disabled = false;
+    }
   });
 }  // end bindDouyinEvents

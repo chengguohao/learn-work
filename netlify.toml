@@ -1,6 +1,7 @@
 # Netlify 部署配置 - 成国浩的工作台
 [build]
   publish = "."
+  functions = "netlify/functions"
 
 # PWA / SPA：所有 404 都返回 index.html（避免刷新白屏）
 [[redirects]]
