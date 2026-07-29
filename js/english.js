@@ -428,16 +428,25 @@ function bindEnglishEvents() {
   });
 
   // 手机左右滑动切换单词
-  let touchStartX = 0;
+  let touchStartX = 0, touchStartY = 0;
   const card = document.getElementById('wordCard');
   card.addEventListener('touchstart', (e) => {
-    touchStartX = e.changedTouches[0].screenX;
-  }, { passive: true });
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  });
+  card.addEventListener('touchmove', (e) => {
+    // 如果是水平滑动，阻止页面滚动
+    const diffX = Math.abs(e.touches[0].clientX - touchStartX);
+    const diffY = Math.abs(e.touches[0].clientY - touchStartY);
+    if (diffX > diffY && diffX > 10) e.preventDefault();
+  });
   card.addEventListener('touchend', (e) => {
-    const diff = touchStartX - e.changedTouches[0].screenX;
-    if (Math.abs(diff) > 50) {
-      if (diff > 0) nextCard();   // 左滑 → 下一个
-      else prevCard();             // 右滑 → 上一个
+    const diffX = touchStartX - e.changedTouches[0].clientX;
+    const diffY = Math.abs(touchStartY - e.changedTouches[0].clientY);
+    // 水平滑动 > 50px 且水平幅度大于垂直幅度，才触发
+    if (Math.abs(diffX) > 50 && Math.abs(diffX) > diffY * 1.5) {
+      if (diffX > 0) nextCard();
+      else prevCard();
     }
-  }, { passive: true });
+  });
 }
