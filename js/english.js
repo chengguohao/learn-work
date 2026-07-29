@@ -427,58 +427,49 @@ function bindEnglishEvents() {
     else if (e.key === 'ArrowRight') markWord('known');
   });
 
-  // 手机左右滑动切换单词（带动画）
-  let swipeStartX = 0;
+  // 手机左右滑动切换单词
+  let swipeStartX = 0, swipeIng = false;
   const card = document.getElementById('wordCard');
   
-  card.addEventListener('pointerdown', (e) => {
-    swipeStartX = e.clientX;
+  card.addEventListener('touchstart', (e) => {
+    swipeStartX = e.touches[0].clientX;
+    swipeIng = true;
     card.style.transition = 'none';
-  });
+    card.style.transform = '';
+  }, { passive: true });
   
-  card.addEventListener('pointermove', (e) => {
-    if (swipeStartX === 0) return;
-    const dx = e.clientX - swipeStartX;
-    card.style.transform = `translateX(${dx}px)`;
+  card.addEventListener('touchmove', (e) => {
+    if (!swipeIng) return;
+    const dx = e.touches[0].clientX - swipeStartX;
+    card.style.transform = 'translateX(' + dx + 'px)';
     card.style.opacity = Math.max(0.3, 1 - Math.abs(dx) / 300);
-  });
+    e.preventDefault();
+  }, { passive: false });
   
-  card.addEventListener('pointerup', (e) => {
-    if (swipeStartX === 0) return;
-    const diffX = swipeStartX - e.clientX;
-    swipeStartX = 0;
+  card.addEventListener('touchend', (e) => {
+    if (!swipeIng) return;
+    swipeIng = false;
+    const dx = swipeStartX - e.changedTouches[0].clientX;
     
-    card.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+    card.style.transition = 'transform 0.25s ease, opacity 0.25s ease';
     
-    if (Math.abs(diffX) > 40) {
-      // 滑出
-      const dir = diffX > 0 ? -1 : 1;
-      card.style.transform = `translateX(${dir * 120}%)`;
+    if (Math.abs(dx) > 40) {
+      const dir = dx > 0 ? -1 : 1;
+      card.style.transform = 'translateX(' + (dir * 120) + '%)';
       card.style.opacity = '0';
-      
-      setTimeout(() => {
-        if (diffX > 0) nextCard();
-        else prevCard();
-        // 从反方向滑入
+      setTimeout(function() {
+        if (dx > 0) nextCard(); else prevCard();
         card.style.transition = 'none';
-        card.style.transform = `translateX(${dir * -120}%)`;
+        card.style.transform = 'translateX(' + (dir * -120) + '%)';
         card.style.opacity = '1';
-        requestAnimationFrame(() => {
-          card.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+        requestAnimationFrame(function() {
+          card.style.transition = 'transform 0.25s ease, opacity 0.25s ease';
           card.style.transform = 'translateX(0)';
         });
       }, 200);
     } else {
-      // 回弹
       card.style.transform = 'translateX(0)';
       card.style.opacity = '1';
     }
-  });
-  
-  card.addEventListener('pointercancel', () => {
-    swipeStartX = 0;
-    card.style.transition = 'transform 0.3s ease';
-    card.style.transform = 'translateX(0)';
-    card.style.opacity = '1';
-  });
+  }, { passive: true });
 }
