@@ -20,7 +20,8 @@ const LEARN_DATE_KEY = 'eng_learn_date';
 // ---- 卡片轨道（滑动）相关状态 ----
 let cardNodes = {};        // 索引 -> 卡片 DOM 节点（窗口化：只渲染当前 ±1 张）
 const CARD_WINDOW = 1;     // 左右各预渲染 1 张，兼顾性能与"看得到邻卡"
-let trackEl = null;        // 轨道 DOM 引用
+let trackEl = null;        // 视口 DOM 引用（#cardTrack，负责裁剪，自身不位移）
+let stripEl = null;        // 滑轨 DOM 引用（.card-strip，承载卡片并整体位移）
 let lastStackSig = '';     // 上一次构建轨道的数据签名，用于判断是否需要重建
 
 // 转义，避免数据中的 < > & 破坏结构
@@ -245,7 +246,7 @@ function ensureWindow() {
   for (let i = start; i <= end; i++) {
     if (!cardNodes[i] && activeWords[i]) {
       cardNodes[i] = buildCardEl(i, activeWords[i], total);
-      trackEl.appendChild(cardNodes[i]);
+      stripEl.appendChild(cardNodes[i]);
     }
   }
   layoutCards();
@@ -260,6 +261,10 @@ function currentStackSig() {
 function rebuildStack() {
   if (!trackEl) trackEl = document.getElementById('cardTrack');
   trackEl.innerHTML = '';
+  // 视口(track)只负责裁剪；位移交给内层 strip，避免邻卡被 overflow 裁掉
+  stripEl = document.createElement('div');
+  stripEl.className = 'card-strip';
+  trackEl.appendChild(stripEl);
   cardNodes = {};
   ensureWindow();
   positionTrack(false);
@@ -280,15 +285,15 @@ function layoutCards() {
   if (cur) trackEl.style.height = cur.offsetHeight + 'px';
 }
 
-// 设置轨道位移；dragPx 为拖动时的实时偏移
+// 设置滑轨位移；dragPx 为拖动时的实时偏移
 function positionTrack(animate, dragPx) {
-  if (!trackEl) return;
+  if (!stripEl) return;
   const w = trackEl.clientWidth;
   const x = -EnglishState.currentIndex * w + (dragPx || 0);
-  trackEl.style.transition = animate
+  stripEl.style.transition = animate
     ? 'transform 0.32s cubic-bezier(.22,.61,.36,1)'
     : 'none';
-  trackEl.style.transform = `translate3d(${x}px,0,0)`;
+  stripEl.style.transform = `translate3d(${x}px,0,0)`;
 }
 
 // 统一的卡片渲染入口（窗口化 + 滑动动画）
@@ -530,7 +535,7 @@ function bindEnglishEvents() {
     if (getActiveWords().length === 0) return;
     dragging = true;
     dragStartX = clientX;
-    track.style.transition = 'none';
+    if (stripEl) stripEl.style.transition = 'none';
   }
   function onDragMove(clientX) {
     if (!dragging) return;

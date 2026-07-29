@@ -532,7 +532,14 @@ a.hot-item:hover { border-color: var(--orange); }
   user-select: none;
   will-change: transform;
 }
-/* 轨道内的卡片：绝对定位、随轨道位移，左右各露一张 */
+/* 滑轨：承载所有卡片、整体位移；视口(.card-track)负责裁剪 */
+.card-strip {
+  position: relative;
+  width: 100%;
+  overflow: visible;
+  will-change: transform;
+}
+/* 轨道内的卡片：绝对定位、随滑轨位移，左右各露一张 */
 .card-track .word-card {
   position: absolute;
   top: 0;
