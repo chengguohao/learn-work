@@ -17,6 +17,19 @@ const EnglishState = {
 const PROGRESS_KEY = 'eng_word_progress';
 const LEARN_DATE_KEY = 'eng_learn_date';
 
+// ---- 卡片轨道（滑动）相关状态 ----
+let cardNodes = {};        // 索引 -> 卡片 DOM 节点（窗口化：只渲染当前 ±1 张）
+const CARD_WINDOW = 1;     // 左右各预渲染 1 张，兼顾性能与"看得到邻卡"
+let trackEl = null;        // 轨道 DOM 引用
+let lastStackSig = '';     // 上一次构建轨道的数据签名，用于判断是否需要重建
+
+// 转义，避免数据中的 < > & 破坏结构
+function escapeHtml(s) {
+  return (s || '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
 // ---- 初始化 ----
 function initEnglish() {
   renderTasks();
@@ -151,7 +164,7 @@ async function loadWordData() {
 // 显示/隐藏加载状态
 function showLoading(loading) {
   document.getElementById('cardLoading').style.display = loading ? 'block' : 'none';
-  const els = ['wordCard', 'cardProgress', 'cardActions', 'cardFooter'];
+  const els = ['cardTrack', 'cardProgress', 'cardActions', 'cardFooter'];
   els.forEach(id => {
     document.getElementById(id).style.display = loading ? 'none' : '';
   });
@@ -169,59 +182,135 @@ function getActiveWords() {
   return EnglishState.words;
 }
 
-// 渲染当前卡片
-function renderCard() {
-  const activeWords = getActiveWords();
-  const total = activeWords.length;
+// 渲染当前卡片（animate=true 时带滑动过渡）
+function renderCard(animate) {
+  renderStack(!!animate);
+}
 
-  if (total === 0) {
-    document.getElementById('wordCard').style.display = 'none';
-    document.getElementById('cardDone').style.display = 'block';
-    document.getElementById('cardProgress').style.display = 'none';
-    document.getElementById('cardActions').style.display = 'none';
-    document.getElementById('cardFooter').style.display = 'none';
-    return;
-  }
+// 显示"全部学完"状态
+function showDone() {
+  document.getElementById('cardTrack').style.display = 'none';
+  document.getElementById('cardDone').style.display = 'block';
+  document.getElementById('cardProgress').style.display = 'none';
+  document.getElementById('cardActions').style.display = 'none';
+  document.getElementById('cardFooter').style.display = 'none';
+}
 
+// 从"完成"状态切回卡片
+function hideDone() {
   document.getElementById('cardDone').style.display = 'none';
-  document.getElementById('wordCard').style.display = 'block';
+  document.getElementById('cardTrack').style.display = 'block';
   document.getElementById('cardProgress').style.display = 'flex';
   document.getElementById('cardActions').style.display = 'flex';
   document.getElementById('cardFooter').style.display = 'block';
+}
 
-  // 确保索引在有效范围
-  if (EnglishState.currentIndex >= total) {
-    EnglishState.currentIndex = 0;
+// 生成单张卡片 DOM
+function buildCardEl(index, word, total) {
+  const el = document.createElement('div');
+  el.className = 'word-card';
+  const status = EnglishState.wordProgress[word.word];
+  if (status === 'known') el.classList.add('card-known');
+  else if (status === 'unknown') el.classList.add('card-unknown');
+  el.innerHTML = `
+    <div class="card-word">${escapeHtml(word.word)}</div>
+    <div class="card-number">${index + 1} / ${total}</div>
+    <div class="card-phonetic">${escapeHtml(word.phonetic)}</div>
+    <div class="card-divider"></div>
+    <div class="card-meaning">${escapeHtml(word.meaning)}</div>
+    <div class="card-example-box ${word.example ? '' : 'hidden'}">
+      <div class="example-en">${escapeHtml(word.example)}</div>
+      <div class="example-cn">${escapeHtml(word.translation || '')}</div>
+    </div>`;
+  return el;
+}
+
+// 保证窗口 [currentIndex-1, currentIndex+1] 内的卡片已渲染
+function ensureWindow() {
+  const activeWords = getActiveWords();
+  const total = activeWords.length;
+  const start = Math.max(0, EnglishState.currentIndex - CARD_WINDOW);
+  const end = Math.min(total - 1, EnglishState.currentIndex + CARD_WINDOW);
+
+  // 移除窗口外的旧节点
+  Object.keys(cardNodes).forEach(k => {
+    const i = parseInt(k, 10);
+    if (i < start || i > end) {
+      cardNodes[i].remove();
+      delete cardNodes[i];
+    }
+  });
+
+  // 补建窗口内缺失的节点
+  for (let i = start; i <= end; i++) {
+    if (!cardNodes[i] && activeWords[i]) {
+      cardNodes[i] = buildCardEl(i, activeWords[i], total);
+      trackEl.appendChild(cardNodes[i]);
+    }
   }
+  layoutCards();
+}
 
-  const word = activeWords[EnglishState.currentIndex];
-  if (!word) return;
+// 当前轨道数据签名（复习模式 / 词库规模变化时需重建）
+function currentStackSig() {
+  return (EnglishState.reviewMode ? 'r:' : 'n:') + EnglishState.words.length;
+}
 
-  document.getElementById('cardWord').textContent = word.word;
-  document.getElementById('cardNumber').textContent = `${EnglishState.currentIndex + 1} / ${total}`;
-  document.getElementById('cardPhonetic').textContent = word.phonetic;
-  document.getElementById('cardMeaning').textContent = word.meaning;
+// 清空并重建整条轨道（数据量/内容变化时调用）
+function rebuildStack() {
+  if (!trackEl) trackEl = document.getElementById('cardTrack');
+  trackEl.innerHTML = '';
+  cardNodes = {};
+  ensureWindow();
+  positionTrack(false);
+  lastStackSig = currentStackSig();
+}
 
-  // 例句（如果有）
-  const exampleBox = document.getElementById('cardExampleBox');
-  if (word.example) {
-    exampleBox.classList.remove('hidden');
-    document.getElementById('cardExampleEn').textContent = word.example;
-    document.getElementById('cardExampleCn').textContent = word.translation || '';
+// 按轨道宽度定位每张卡片（像素，避免 % 歧义）
+function layoutCards() {
+  if (!trackEl) return;
+  const w = trackEl.clientWidth;
+  Object.keys(cardNodes).forEach(k => {
+    const el = cardNodes[k];
+    el.style.width = w + 'px';
+    el.style.left = (parseInt(k, 10) * w) + 'px';
+  });
+  // 轨道高度跟随当前卡片
+  const cur = cardNodes[EnglishState.currentIndex];
+  if (cur) trackEl.style.height = cur.offsetHeight + 'px';
+}
+
+// 设置轨道位移；dragPx 为拖动时的实时偏移
+function positionTrack(animate, dragPx) {
+  if (!trackEl) return;
+  const w = trackEl.clientWidth;
+  const x = -EnglishState.currentIndex * w + (dragPx || 0);
+  trackEl.style.transition = animate
+    ? 'transform 0.32s cubic-bezier(.22,.61,.36,1)'
+    : 'none';
+  trackEl.style.transform = `translate3d(${x}px,0,0)`;
+}
+
+// 统一的卡片渲染入口（窗口化 + 滑动动画）
+function renderStack(animate) {
+  const activeWords = getActiveWords();
+  if (!trackEl) trackEl = document.getElementById('cardTrack');
+
+  if (activeWords.length === 0) { showDone(); return; }
+  hideDone();
+
+  // 数据变化（切换复习模式 / 重新加载词库）时重建整条轨道
+  if (currentStackSig() !== lastStackSig) {
+    rebuildStack();
   } else {
-    exampleBox.classList.add('hidden');
+    ensureWindow();
   }
+  positionTrack(animate);
 
   // 进度条
+  const total = activeWords.length;
   const progress = ((EnglishState.currentIndex + 1) / total) * 100;
   document.getElementById('progressFill').style.width = progress + '%';
-
-  // 标记当前单词的学习状态样式
-  const card = document.getElementById('wordCard');
-  const status = EnglishState.wordProgress[word.word];
-  card.className = 'word-card';
-  if (status === 'known') card.classList.add('card-known');
-  else if (status === 'unknown') card.classList.add('card-unknown');
 }
 
 // 渲染统计信息
@@ -265,7 +354,7 @@ function prevCard() {
   if (activeWords.length === 0) return;
   if (EnglishState.currentIndex > 0) {
     EnglishState.currentIndex--;
-    renderCard();
+    renderCard(true);
   }
 }
 
@@ -275,7 +364,7 @@ function nextCard() {
   if (activeWords.length === 0) return;
   if (EnglishState.currentIndex < activeWords.length - 1) {
     EnglishState.currentIndex++;
-    renderCard();
+    renderCard(true);
   }
 }
 
@@ -296,6 +385,14 @@ function markWord(status) {
   dateLog[word.word] = new Date().toDateString();
   localStorage.setItem(LEARN_DATE_KEY, JSON.stringify(dateLog));
 
+  // 更新当前卡片的样式
+  const cur = cardNodes[EnglishState.currentIndex];
+  if (cur) {
+    cur.classList.remove('card-known', 'card-unknown');
+    if (status === 'known') cur.classList.add('card-known');
+    else if (status === 'unknown') cur.classList.add('card-unknown');
+  }
+
   // 下一张
   if (EnglishState.currentIndex < activeWords.length - 1) {
     EnglishState.currentIndex++;
@@ -307,19 +404,16 @@ function markWord(status) {
     }
     // 检查是否全部完成
     const remaining = getActiveWords();
-    if (remaining.length === 0 || (EnglishState.reviewMode && remaining.filter(w => {
-      return EnglishState.wordProgress[w.word] === 'unknown';
-    }).length === 0)) {
-      document.getElementById('wordCard').style.display = 'none';
-      document.getElementById('cardDone').style.display = 'block';
-      document.getElementById('cardProgress').style.display = 'none';
-      document.getElementById('cardActions').style.display = 'none';
-      document.getElementById('cardFooter').style.display = 'none';
+    if (remaining.length === 0 || (EnglishState.reviewMode && remaining.every(w => {
+      return EnglishState.wordProgress[w.word] !== 'unknown';
+    }))) {
+      showDone();
+      renderStats();
       return;
     }
   }
 
-  renderCard();
+  renderCard(true);
   renderStats();
 }
 
@@ -351,7 +445,7 @@ function resetProgress() {
   EnglishState.wordProgress = {};
   localStorage.setItem(PROGRESS_KEY, '{}');
   EnglishState.currentIndex = 0;
-  renderCard();
+  rebuildStack();
   renderStats();
 }
 
@@ -427,47 +521,52 @@ function bindEnglishEvents() {
     else if (e.key === 'ArrowRight') markWord('known');
   });
 
-  // 手机左右滑动切换单词
-  var swipeStartX = 0, swipeIng = false;
-  
-  // 用事件委托到父容器，避免卡片隐藏时绑定事件的问题
-  document.getElementById('tab-words').addEventListener('touchstart', function(e) {
-    var card = e.target.closest('#wordCard');
-    if (!card) return;
-    swipeStartX = e.touches[0].clientX;
-    swipeIng = true;
-    card.style.transition = 'none';
-    card.style.transform = '';
-  }, { passive: true });
-  
-  document.getElementById('tab-words').addEventListener('touchmove', function(e) {
-    if (!swipeIng) return;
-    var card = document.getElementById('wordCard');
-    var dx = e.touches[0].clientX - swipeStartX;
-    card.style.transform = 'translateX(' + dx + 'px)';
-  }, { passive: true });
-  
-  document.getElementById('tab-words').addEventListener('touchend', function(e) {
-    if (!swipeIng) return;
-    swipeIng = false;
-    var card = document.getElementById('wordCard');
-    var dx = swipeStartX - e.changedTouches[0].clientX;
-    
-    if (Math.abs(dx) > 40) {
-      card.style.transition = 'transform 0.25s ease';
-      card.style.transform = 'translateX(' + (dx > 0 ? '-120%' : '120%') + ')';
-      setTimeout(function() {
-        if (dx > 0) nextCard(); else prevCard();
-        card.style.transition = 'none';
-        card.style.transform = 'translateX(' + (dx > 0 ? '120%' : '-120%') + ')';
-        requestAnimationFrame(function() {
-          card.style.transition = 'transform 0.25s ease';
-          card.style.transform = 'translateX(0)';
-        });
-      }, 200);
-    } else {
-      card.style.transition = 'transform 0.2s ease';
-      card.style.transform = 'translateX(0)';
+  // ===== 卡片滑动（轨道式：手指拖动时能看到上/下一张）=====
+  const track = document.getElementById('cardTrack');
+  trackEl = track;
+  let dragStartX = 0, dragging = false;
+
+  function onDragStart(clientX) {
+    if (getActiveWords().length === 0) return;
+    dragging = true;
+    dragStartX = clientX;
+    track.style.transition = 'none';
+  }
+  function onDragMove(clientX) {
+    if (!dragging) return;
+    const dx = clientX - dragStartX;
+    positionTrack(false, dx);
+  }
+  function onDragEnd(clientX) {
+    if (!dragging) return;
+    dragging = false;
+    const dx = clientX - dragStartX;
+    const w = track.clientWidth;
+    const threshold = Math.max(50, w * 0.2);   // 滑过约 1/5 宽度即切换
+    const total = getActiveWords().length;
+    if (dx <= -threshold && EnglishState.currentIndex < total - 1) {
+      EnglishState.currentIndex++;            // 左滑 → 下一张
+    } else if (dx >= threshold && EnglishState.currentIndex > 0) {
+      EnglishState.currentIndex--;            // 右滑 → 上一张
     }
-  }, { passive: true });
+    renderCard(true);
+  }
+
+  // 触摸滑动（移动端）
+  track.addEventListener('touchstart', e => onDragStart(e.touches[0].clientX), { passive: true });
+  track.addEventListener('touchmove', e => onDragMove(e.touches[0].clientX), { passive: true });
+  track.addEventListener('touchend', e => onDragEnd(e.changedTouches[0].clientX), { passive: true });
+
+  // 鼠标拖拽（桌面端预览/调试用）
+  track.addEventListener('mousedown', e => {
+    e.preventDefault();
+    onDragStart(e.clientX);
+  });
+  window.addEventListener('mousemove', e => { if (dragging) onDragMove(e.clientX); });
+  window.addEventListener('mouseup', e => { if (dragging) onDragEnd(e.clientX); });
+
+  // 屏幕旋转/尺寸变化时重新布局
+  window.addEventListener('resize', () => {
+    if (getActiveWords().length > 0) { layoutCards(); positionTrack(false); }
+  });
 }

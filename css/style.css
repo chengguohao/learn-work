@@ -521,3 +521,23 @@ a.hot-item:hover { border-color: var(--orange); }
 }
 .done-icon { font-size: 48px; margin-bottom: 12px; }
 .done-text { font-size: 18px; color: var(--text); font-weight: 600; margin-bottom: 16px; }
+
+/* ---- 卡片轨道（滑动切换）---- */
+.card-track {
+  position: relative;
+  overflow: hidden;
+  margin: 8px 0 4px;
+  touch-action: none;          /* 横向手势交给我们处理，避免系统横滑/返回 */
+  -webkit-user-select: none;
+  user-select: none;
+  will-change: transform;
+}
+/* 轨道内的卡片：绝对定位、随轨道位移，左右各露一张 */
+.card-track .word-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 0;
+  width: 100%;
+  will-change: transform;
+}
