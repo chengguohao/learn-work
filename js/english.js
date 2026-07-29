@@ -432,11 +432,12 @@ function bindEnglishEvents() {
   const card = document.getElementById('wordCard');
   
   card.addEventListener('touchstart', (e) => {
+    e.preventDefault();
     swipeStartX = e.touches[0].clientX;
     swipeIng = true;
     card.style.transition = 'none';
     card.style.transform = '';
-  }, { passive: true });
+  }, { passive: false });
   
   card.addEventListener('touchmove', (e) => {
     if (!swipeIng) return;
