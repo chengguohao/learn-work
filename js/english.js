@@ -259,6 +259,26 @@ function renderStats() {
   }
 }
 
+// 上一个单词（不标记）
+function prevCard() {
+  const activeWords = getActiveWords();
+  if (activeWords.length === 0) return;
+  if (EnglishState.currentIndex > 0) {
+    EnglishState.currentIndex--;
+    renderCard();
+  }
+}
+
+// 下一个单词（不标记）
+function nextCard() {
+  const activeWords = getActiveWords();
+  if (activeWords.length === 0) return;
+  if (EnglishState.currentIndex < activeWords.length - 1) {
+    EnglishState.currentIndex++;
+    renderCard();
+  }
+}
+
 // 标记单词学习状态
 function markWord(status) {
   const activeWords = getActiveWords();
@@ -406,4 +426,18 @@ function bindEnglishEvents() {
     if (e.key === 'ArrowLeft') markWord('unknown');
     else if (e.key === 'ArrowRight') markWord('known');
   });
+
+  // 手机左右滑动切换单词
+  let touchStartX = 0;
+  const card = document.getElementById('wordCard');
+  card.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+  card.addEventListener('touchend', (e) => {
+    const diff = touchStartX - e.changedTouches[0].screenX;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) nextCard();   // 左滑 → 下一个
+      else prevCard();             // 右滑 → 上一个
+    }
+  }, { passive: true });
 }
