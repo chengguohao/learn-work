@@ -397,7 +397,7 @@ a.hot-item:hover { border-color: var(--orange); }
   align-items: center; justify-content: center;
   transition: border-color 0.3s;
   border: 2px solid transparent;
-  user-select: none;
+  user-select: none; touch-action: none;
 }
 .word-card.card-known { border-color: #22c55e; }
 .word-card.card-unknown { border-color: #ef4444; }
