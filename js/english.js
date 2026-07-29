@@ -427,17 +427,58 @@ function bindEnglishEvents() {
     else if (e.key === 'ArrowRight') markWord('known');
   });
 
-  // 手机左右滑动切换单词
-  let touchStartX = 0;
+  // 手机左右滑动切换单词（带动画）
+  let swipeStartX = 0;
   const card = document.getElementById('wordCard');
-  card.addEventListener('touchstart', (e) => {
-    touchStartX = e.touches[0].clientX;
+  
+  card.addEventListener('pointerdown', (e) => {
+    swipeStartX = e.clientX;
+    card.style.transition = 'none';
   });
-  card.addEventListener('touchend', (e) => {
-    const diffX = touchStartX - e.changedTouches[0].clientX;
+  
+  card.addEventListener('pointermove', (e) => {
+    if (swipeStartX === 0) return;
+    const dx = e.clientX - swipeStartX;
+    card.style.transform = `translateX(${dx}px)`;
+    card.style.opacity = Math.max(0.3, 1 - Math.abs(dx) / 300);
+  });
+  
+  card.addEventListener('pointerup', (e) => {
+    if (swipeStartX === 0) return;
+    const diffX = swipeStartX - e.clientX;
+    swipeStartX = 0;
+    
+    card.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+    
     if (Math.abs(diffX) > 40) {
-      if (diffX > 0) nextCard();
-      else prevCard();
+      // 滑出
+      const dir = diffX > 0 ? -1 : 1;
+      card.style.transform = `translateX(${dir * 120}%)`;
+      card.style.opacity = '0';
+      
+      setTimeout(() => {
+        if (diffX > 0) nextCard();
+        else prevCard();
+        // 从反方向滑入
+        card.style.transition = 'none';
+        card.style.transform = `translateX(${dir * -120}%)`;
+        card.style.opacity = '1';
+        requestAnimationFrame(() => {
+          card.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+          card.style.transform = 'translateX(0)';
+        });
+      }, 200);
+    } else {
+      // 回弹
+      card.style.transform = 'translateX(0)';
+      card.style.opacity = '1';
     }
+  });
+  
+  card.addEventListener('pointercancel', () => {
+    swipeStartX = 0;
+    card.style.transition = 'transform 0.3s ease';
+    card.style.transform = 'translateX(0)';
+    card.style.opacity = '1';
   });
 }
