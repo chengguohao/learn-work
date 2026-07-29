@@ -428,49 +428,46 @@ function bindEnglishEvents() {
   });
 
   // 手机左右滑动切换单词
-  let swipeStartX = 0, swipeIng = false;
-  const card = document.getElementById('wordCard');
+  var swipeStartX = 0, swipeIng = false;
   
-  card.addEventListener('touchstart', (e) => {
-    e.preventDefault();
+  // 用事件委托到父容器，避免卡片隐藏时绑定事件的问题
+  document.getElementById('tab-words').addEventListener('touchstart', function(e) {
+    var card = e.target.closest('#wordCard');
+    if (!card) return;
     swipeStartX = e.touches[0].clientX;
     swipeIng = true;
     card.style.transition = 'none';
     card.style.transform = '';
-  }, { passive: false });
+  }, { passive: true });
   
-  card.addEventListener('touchmove', (e) => {
+  document.getElementById('tab-words').addEventListener('touchmove', function(e) {
     if (!swipeIng) return;
-    const dx = e.touches[0].clientX - swipeStartX;
+    var card = document.getElementById('wordCard');
+    var dx = e.touches[0].clientX - swipeStartX;
     card.style.transform = 'translateX(' + dx + 'px)';
-    card.style.opacity = Math.max(0.3, 1 - Math.abs(dx) / 300);
-    e.preventDefault();
-  }, { passive: false });
+  }, { passive: true });
   
-  card.addEventListener('touchend', (e) => {
+  document.getElementById('tab-words').addEventListener('touchend', function(e) {
     if (!swipeIng) return;
     swipeIng = false;
-    const dx = swipeStartX - e.changedTouches[0].clientX;
-    
-    card.style.transition = 'transform 0.25s ease, opacity 0.25s ease';
+    var card = document.getElementById('wordCard');
+    var dx = swipeStartX - e.changedTouches[0].clientX;
     
     if (Math.abs(dx) > 40) {
-      const dir = dx > 0 ? -1 : 1;
-      card.style.transform = 'translateX(' + (dir * 120) + '%)';
-      card.style.opacity = '0';
+      card.style.transition = 'transform 0.25s ease';
+      card.style.transform = 'translateX(' + (dx > 0 ? '-120%' : '120%') + ')';
       setTimeout(function() {
         if (dx > 0) nextCard(); else prevCard();
         card.style.transition = 'none';
-        card.style.transform = 'translateX(' + (dir * -120) + '%)';
-        card.style.opacity = '1';
+        card.style.transform = 'translateX(' + (dx > 0 ? '120%' : '-120%') + ')';
         requestAnimationFrame(function() {
-          card.style.transition = 'transform 0.25s ease, opacity 0.25s ease';
+          card.style.transition = 'transform 0.25s ease';
           card.style.transform = 'translateX(0)';
         });
       }, 200);
     } else {
+      card.style.transition = 'transform 0.2s ease';
       card.style.transform = 'translateX(0)';
-      card.style.opacity = '1';
     }
   }, { passive: true });
 }
