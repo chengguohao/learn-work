@@ -234,6 +234,8 @@ html, body {
   background: var(--card-bg); border-radius: var(--radius-sm);
   padding: 14px; box-shadow: var(--shadow);
 }
+a.hot-item { text-decoration: none; color: inherit; display: block; }
+a.hot-item:hover { border-color: var(--orange); }
 .hot-rank {
   display: inline-flex; align-items: center; justify-content: center;
   width: 22px; height: 22px; border-radius: 6px;

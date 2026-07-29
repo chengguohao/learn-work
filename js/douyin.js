@@ -110,8 +110,9 @@ function renderDouyinList() {
     return;
   }
 
-  container.innerHTML = items.map((item, idx) => `
-    <div class="hot-item">
+  container.innerHTML = items.map((item, idx) => {
+    const link = item.url || (item.group_id ? 'https://www.douyin.com/video/' + item.group_id : null);
+    const content = `
       <div>
         <span class="hot-rank ${idx < 3 ? 'top3' : ''}">${idx + 1}</span>
         <span style="font-size:12px;color:var(--text-secondary)">${item.style}</span>
@@ -122,9 +123,13 @@ function renderDouyinList() {
         <span class="hot-stats">👁 ${item.views} · ❤️ ${item.likes}</span>
         <span class="hot-tag">#${item.style}</span>
         <span class="hot-adapt">${item.adaptTip}</span>
-      </div>
-    </div>
-  `).join('');
+      </div>`;
+
+    if (link) {
+      return `<a class="hot-item" href="${link}" target="_blank" rel="noopener">${content}</a>`;
+    }
+    return `<div class="hot-item">${content}</div>`;
+  }).join('');
 }
 
 // ---- 事件绑定 ----
@@ -149,16 +154,12 @@ function bindDouyinEvents() {
       const result = await resp.json();
 
       if (result.success) {
-        alert('✅ 已更新 ' + result.count + ' 条热点数据！\n\n' +
-          result.data.map((d, i) => (i+1) + '. ' + d.title + ' (' + d.views + ')').join('\n') +
-          '\n\n刷新页面即可查看');
-        // 重新加载数据
+        alert('✅ 已更新 ' + result.count + ' 条热点数据！刷新页面即可查看');
         loadDouyinData();
       } else {
-        alert('❌ 更新失败：' + (result.error || '未知错误'));
+        alert('❌ ' + (result.error || '更新失败'));
       }
     } catch (e) {
-      // 本地开发环境没有 Netlify Function 时的 fallback
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         alert('本地环境不支持自动刷新。跟我说一声「更新热点」，我来帮你抓取。');
       } else {
