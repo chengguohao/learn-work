@@ -42,13 +42,19 @@ exports.handler = async function () {
       adapt_tip: '🎯 可改编 ↓点击跳转抖音',
     }));
 
-    // 3. 写入 Supabase（不带 url 字段，因为列不存在）
+    // 3. 写入 Supabase
     const headers = {
       apikey: SUPABASE_KEY,
       Authorization: 'Bearer ' + SUPABASE_KEY,
       'Content-Type': 'application/json'
     };
 
+    // 先清空旧数据
+    await fetch(SUPABASE_URL + '/rest/v1/douyin_hot?id=gte.0', {
+      method: 'DELETE', headers
+    });
+
+    // 插入新数据
     const ins = await fetch(SUPABASE_URL + '/rest/v1/douyin_hot', {
       method: 'POST', headers, body: JSON.stringify(records)
     });
